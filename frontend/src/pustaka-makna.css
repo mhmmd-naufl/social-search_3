@@ -1,0 +1,91 @@
+.pustaka-makna-page {
+    background-color: #f0f0f0; /* Warna latar belakang */
+    min-height: 100vh; /* Pastikan tinggi halaman penuh */
+    padding: 20px;
+    color: rgb(0, 0, 0); /* Warna teks agar kontras */
+  }
+/* Gaya untuk container utama */
+.container {
+    padding: 50px;
+  }
+  
+  /* Gaya untuk heading */
+  .container h2 {
+    margin-bottom: 20px;
+  }
+  
+  /* Gaya untuk tombol dan search bar */
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .toolbar input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    flex: 1;
+  }
+  
+  .toolbar button,
+  .toolbar label {
+    padding: 10px 15px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .toolbar button {
+    background-color: #1abc9c;
+  }
+  
+  .toolbar label {
+    background-color: #3498db;
+  }
+  
+  .toolbar label input[type="file"] {
+    display: none;
+  }
+  
+  /* Gaya untuk tabel */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    background-color: #ffffff;
+  }
+  
+  table thead tr {
+    background-color: #fdfdfd;
+  }
+  
+  table th,
+  table td {
+    padding: 10px;
+    border: 1px solid #ddd;
+  }
+  
+  table tbody tr td button {
+    margin-right: 5px;
+    padding: 5px 10px;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  table tbody tr td button.edit {
+    background-color: #f39c12;
+  }
+  
+  table tbody tr td button.delete {
+    background-color: #e74c3c;
+  }
+  
+  table tbody tr td[colspan="5"] {
+    text-align: center;
+  }
+
+
