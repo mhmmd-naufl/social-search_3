@@ -3,16 +3,31 @@ import json
 import asyncio
 from bson import ObjectId
 from ...db.mongodb import search_collection
+from playwright.async_api import async_playwright
+
+async def get_new_cookies():
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        page = await browser.new_page()
+        await page.goto("https://www.tiktok.com/", timeout=60000)
+        
+        cookies = await page.context.cookies()
+        cookie_str = "; ".join([f"{cookie['name']}={cookie['value']}" for cookie in cookies])
+        
+        await browser.close()
+        return cookie_str
 
 async def scrape_and_save():
-    post_url = "https://www.tiktok.com/@ct.aisyahh/video/7488191938156449031"
+    post_url = "https://www.tiktok.com/@frdyashputra_/video/7488988646201101575"
     post_id = post_url.split("/")[-1]
+    
+    cookies = await get_new_cookies()
 
     headers = {
         'accept': '*/*',
         'accept-encoding': 'gzip, deflate, br, zstd',
         'accept-language': 'en-US,en;q=0.8',
-        'cookie': 'tt_chain_token=lhTxxjE0jNYlurACiG0j/A==; passport_csrf_token=ec14d72b9648dc07957d9feeeb4cd0fd; passport_csrf_token_default=ec14d72b9648dc07957d9feeeb4cd0fd; odin_tt=30eb077673b7b86369b3ef93f5625b48a28d6055f4e3810e84f2cd113931cfc12e04feb5f6e2b737229f638bb1a1e794af7fc9c6b9db17d6a84566527f98153e28ed59a655663cab601c4ff14e7846ae; tiktok_webapp_theme_source=auto; tiktok_webapp_theme=dark; delay_guest_mode_vid=8; tt_csrf_token=YBcgewsR-aYED_lLKek7ON4bCZQWr9p5Jicw; perf_feed_cache={%22expireTimestamp%22:1745733600000%2C%22itemIds%22:[%227493683042469301522%22%2C%227468639987194547463%22%2C%227467498149133782278%22]}; ttwid=1%7COU943zTBlk33c8Lju-fHz5X74fZLf51ne5k81bfPZPM%7C1745564295%7Cecec09cafb17208652dcb6d665543efeebc797aab678ed1131c01b3e8a053827; msToken=zX_wo2vUhgjjxXotsDDCSfjtw3SW3cgMnP9JB90VVioQDCbcyzXxnfDYZydtBbqSc_rClrgPSPKNUYLo5n5nwiG9gvHxgLLKNjMEFGkeWFMn0pXpXoZCcr-TySz0ASRDF6CJxY7I2Xi3IzVVdh-Qudc=; msToken=zX_wo2vUhgjjxXotsDDCSfjtw3SW3cgMnP9JB90VVioQDCbcyzXxnfDYZydtBbqSc_rClrgPSPKNUYLo5n5nwiG9gvHxgLLKNjMEFGkeWFMn0pXpXoZCcr-TySz0ASRDF6CJxY7I2Xi3IzVVdh-Qudc=',
+        'cookie': cookies,
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
     }
 
@@ -25,12 +40,7 @@ async def scrape_and_save():
             comments = []
             for c in raw_data.get("comments", []):
                 comments.append({
-                    "comment_id": c.get("cid"),
                     "text": c.get("text"),
-                    "like_count": c.get("digg_count"),
-                    "user_id": c.get("user", {}).get("user_id"),
-                    "username": c.get("user", {}).get("unique_id"),
-                    "nickname": c.get("user", {}).get("nickname")
                 })
 
             # Simpan ke MongoDB menggunakan Motor
