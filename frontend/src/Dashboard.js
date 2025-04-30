@@ -149,7 +149,7 @@ const Dashboard = () => {
         </div>{" "}
         {/* penutup activity-summary */}
       </main>{" "}
-      {/* penutup main-content */}
+      {/* penutupds main-content */}
     </div>
   );
 };
