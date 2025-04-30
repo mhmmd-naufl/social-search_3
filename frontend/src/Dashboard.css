@@ -1,85 +1,258 @@
-/* Dashboard Container */
+/* Layout dasar */
 .dashboard-container {
-  min-height: 100vh;
-  background: #f4f6f8;
-  padding: 40px 20px;
   display: flex;
-  flex-direction: column;
-  align-items: center;
+  min-height: 100vh;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Welcome Section */
-.dashboard-header {
-  max-width: 800px;
-  width: 100%;
-  background-color: white;
-  padding: 30px 40px;
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-  margin-bottom: 30px;
-  text-align: center;
-  animation: fadeIn 0.8s ease;
-}
-
-.dashboard-header h2 {
-  font-size: 28px;
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.dashboard-header p {
-  font-size: 16px;
-  color: #666;
-}
-
-/* Content Section */
-.dashboard-content {
-  max-width: 800px;
-  width: 100%;
-  background-color: #ffffff;
-  padding: 20px 30px;
-  border-radius: 12px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
-  animation: fadeIn 0.9s ease;
-}
-
-/* Sample content card */
-.card {
-  background-color: #f9fbff;
+/* Sidebar */
+.sidebar {
+  width: 250px;
+  background-color: #092c63;
+  color: white;
   padding: 20px;
-  border: 1px solid #e1e7ef;
-  border-radius: 12px;
+}
+
+.sidebar-header {
+  font-size: 24px;
+  margin-bottom: 30px;
+}
+
+.sidebar-menu {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar-menu li {
   margin-bottom: 20px;
+  cursor: pointer;
 }
 
-.card h4 {
-  margin-bottom: 10px;
-  color: #333;
+/* Main content */
+.main-content {
+  flex: 1;
+  background-color: #f7f9fc;
+  padding: 30px;
 }
 
-.card p {
+.welcome-section h1 {
+  margin: 0;
+  font-size: 28px;
+  color: #092c63;
+}
+
+.welcome-section p {
+  margin: 5px 0 70px 0;
   color: #555;
 }
 
-/* Fade-in Animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  
+/*didalam card*/
+.activity-summary {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 }
-@media (max-width: 1024px) {
-  .dashboard-container {
-    padding: 20px 10px;
-  }
 
-  .dashboard-header,
-  .dashboard-content {
-    padding: 20px;
-  }
+.activity-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+/*ringkasan aktivitas*/
+.activity-title {
+  font-size: 29px;
+  font-weight: 500;
+  margin: 0;
+}
+
+/*CARD DATA TERAKHIRRRRRRRRRRRRRRRRRR*/
+.update-info-card {
+  background-color: #ffffff;
+  padding: 15px 13px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.502);
+  display: flex;
+  align-items: center;
+}
+
+.update-text {
+  width: 100%;
+  text-align: left; /* kunci */
+  align-items: center;
+  margin-left: 10px; /* Tambahkan margin kanan jika perlu */
+  color: #000000;
+  font-weight: 450;
+}
+
+.cards-container {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.weather-section {
+  flex: 1; /* <-- Dulu 2, sekarang 1 */
+}
+
+/*card banyuwangi*/
+.weather-card {
+  background-color: #397ddd;
+  padding: 7px;
+  width: 270px;
+  border-radius: 12px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: rgb(254, 254, 254);
+  font-size: 20px;
+  gap: 4px;
+}
+.weather-card h4,
+.weather-card p {
+  margin: 0;
+  line-height: 1, 5;
+}
+
+/* Area kanan */
+.small-cards-section {
+  flex: 2; /* <-- Yang kanan jadi lebih lebar */
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Baris pertama: Selasa dan Pukul */
+.top-small-cards {
+  display: flex;
+  gap: 25px;
+}
+
+/*CARD TANGGAL*/
+.date-card {
+  background-color: #ffffff;
+  padding: 5px; /* Ukuran padding lebih kecil */
+  height: 200px; /* Tinggi kartu bisa atur di sini */
+  flex: 1;
+  border-radius: 12px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.502);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: 180552;
+  font-size: 20px;
+}
+
+.date-card h4,
+.date-card p {
+  margin: 0;
+  line-height: 1, 5;
+}
+
+/*CARD WAKTUUUU*/
+.time-card {
+  background-color: #10b981;
+  padding: 5px;
+  height: 200px; /* Sama dengan Selasa, bisa atur */
+  flex: 1;
+  border-radius: 12px;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.502);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+}
+
+.time-card h4,
+.time-card p {
+  margin: 0;
+  line-height: 1, 5;
+}
+
+/* card jumlah kata */
+.bottom-small-card .card {
+  background-color: #ffffff;
+  padding: 60px 24px; /* kiri-kanan lebih luas, atas-bawah cukup */
+  border-radius: 12px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.502);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bottom-small-card h4,
+.bottom-small-card p {
+  margin: 0;
+  line-height: 1.5;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.check-button {
+  background-color: #e0b818;
+  border: none;
+  padding: 10px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-top: 10px;
+  margin-left: 277px;
+  white-space: nowrap;
+}
+
+.card-icon-bwi {
+  margin-bottom: 27px;
+  color: #ffffff;
+}
+
+.card-icon-tanggal {
+  margin-bottom: 27px;
+  color: #180552;
+}
+
+.card-icon-pukul {
+  margin-bottom: 27px;
+  color: #ffffff;
+}
+
+/*icon jumlah kata*/
+.card-icon-left {
+  margin-right: 25px;
+
+  color: #180552; /* Tambahkan margin kiri */
+}
+
+/*icon data terakhir*/
+.dropdown-icon {
+  font-size: 16px;
+  margin-left: 265px; /* Tambahkan margin kiri */
+  margin-right: 10px; /* Tambahkan margin kanan jika perlu */
+  color: #397ddd;
+}
+
+.word-count-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.word-count-content div {
+  flex-grow: 1;
+}
+
+.dashboard-subtitle {
+  display: inline-block;
+  border-bottom: 2px solid #cdcdcd;
+  padding-bottom: 5px;
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 50;
+  width: 920px;
 }
