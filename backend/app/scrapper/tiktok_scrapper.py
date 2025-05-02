@@ -18,7 +18,7 @@ async def get_new_cookies():
         return cookie_str
 
 async def scrape_and_save():
-    post_url = "https://www.tiktok.com/@frdyashputra_/video/7488988646201101575"
+    post_url = "https://www.tiktok.com/@hmjbi_poliwangi/video/7435178615509175559"
     post_id = post_url.split("/")[-1]
 
     cookies = await get_new_cookies()
@@ -61,8 +61,8 @@ async def scrape_and_save():
                 print("Error: Gagal mengambil data dari TikTok API")
                 has_more = False  # stop looping kalau gagal
 
-        # if all_comments:
-        #     await search_collection.insert_many(all_comments)
+        if all_comments:
+            await search_collection.insert_many(all_comments)
 
             def convert_objectid_to_str(data):
                 if isinstance(data, list):

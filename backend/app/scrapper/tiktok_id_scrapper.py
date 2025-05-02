@@ -3,6 +3,8 @@ import json
 import asyncio
 import random
 from playwright.async_api import async_playwright
+from datetime import datetime
+from ...db.mongodb import search_collection
 
 async def get_new_cookies():
     async with async_playwright() as p:
@@ -28,18 +30,11 @@ async def search_videos_by_keyword(keyword, max_videos=20):
         "referer": "https://www.tiktok.com/",
     }
 
-    # Opsi proxy (jika diperlukan, uncomment dan sesuaikan)
-    # proxies = {
-    #     'http': 'http://192.168.1.1:8080',
-    #     'https': 'http://192.168.1.1:8080'
-    # }
-
     video_ids = []
     cursor = 0
     has_more = True
 
     while has_more and len(video_ids) < max_videos:
-        # URL API pencarian TikTok (sesuaikan parameter berdasarkan observasi)
         url = (
             f"https://www.tiktok.com/api/search/general/full/?"
             f"aid=1988&app_language=en&app_name=tiktok_web&browser_language=en-US&"
@@ -54,28 +49,41 @@ async def search_videos_by_keyword(keyword, max_videos=20):
         )
 
         try:
-            # Tambahkan proxies=proxies di bawah jika menggunakan proxy
             response = requests.get(url, headers=headers, timeout=10)
 
             if response.status_code == 200:
                 raw_data = response.json()
 
-                # Ambil video dari respons
                 videos = raw_data.get("data", [])
                 for item in videos:
-                    if item.get("type") == 1:  # Type 1 biasanya video
+                    if item.get("type") == 1:
                         video_id = item.get("item", {}).get("id")
-                        if video_id:
-                            video_ids.append({"video_id": video_id, "url": f"https://www.tiktok.com/@user/video/{video_id}"})
-                            print(f"Found video ID: {video_id}")
+                        nickname = item.get("item", {}).get("author", {}).get("nickname")
+                        jumlah_comment = item.get("item", {}).get("stats", {}).get("commentCount")
+                        desc = item.get("item", {}).get("desc")
+                        kode_tanggal = item.get("item", {}).get("createTime")
 
-                # Periksa apakah ada halaman berikutnya
+                        if video_id:
+                            object_tanggal = datetime.fromtimestamp(kode_tanggal)
+                            tanggal = object_tanggal.strftime("%d-%m-%Y")
+                            video_url = f"https://www.tiktok.com/@{nickname}/video/{video_id}"
+                            data_video = {
+                                "video_id": video_id,
+                                "url": video_url,
+                                "desc": desc,
+                                "tanggal": tanggal,
+                                "nickname": nickname,
+                                "jumlah_comment": jumlah_comment
+                            }
+                
+                await save_to_mongo(data_video)
+                video_ids.append(data_video)
+                
                 has_more = raw_data.get("has_more", False)
                 cursor = raw_data.get("cursor", cursor + 30)
 
                 print(f"Fetched {len(videos)} videos, next cursor: {cursor}")
 
-                # Jeda acak untuk menghindari deteksi anti-bot
                 await asyncio.sleep(random.uniform(0.5, 2))
 
             else:
@@ -86,7 +94,6 @@ async def search_videos_by_keyword(keyword, max_videos=20):
             print(f"Error saat mengambil data: {e}")
             has_more = False
 
-    # Simpan hasil ke file JSON
     if video_ids:
         with open("tiktok_video_ids.json", "w", encoding="utf-8") as f:
             json.dump(video_ids, f, ensure_ascii=False, indent=4)
@@ -96,11 +103,56 @@ async def search_videos_by_keyword(keyword, max_videos=20):
 
     return video_ids
 
+async def save_to_mongo(data: dict):
+    post_id = data.get("video_id")
+    if not post_id:
+        print("Data tidak memiliki video_id, tidak disimpan.")
+        return
+
+    try:
+        await search_collection.update_one(
+            {"post_id": post_id},
+            {
+                "$set": {
+                    "platform": "tiktok",
+                    "keyword": data.get("keyword", ""),
+                    "url": data.get("url", ""),
+                    "desc": data.get("desc", ""),
+                    "tanggal_upload": data.get("tanggal", ""),
+                    "nickname": data.get("nickname", ""),
+                    "jumlah_comment": data.get("jumlah_comment", 0),
+                    "timestamp": datetime.now()
+                }
+            },
+            upsert=True
+        )
+        print(f"Berhasil menyimpan data")
+    except Exception as e:
+        print(f"Error saat menyimpan ke MongoDB: {e}")
+
 async def main():
-    keyword = "api"  # Ganti dengan kata kunci yang diinginkan
-    max_videos = 50  # Jumlah maksimum video yang ingin diambil
+    keyword = "informatika"
+    max_videos = 50
     video_ids = await search_videos_by_keyword(keyword, max_videos)
-    print(f"Video IDs: {video_ids}")
+    print("\nHasil Video TikTok:")
+    hasil = []
+    for video in video_ids:
+        hasil.append({
+            "video_id": video["video_id"],
+            "desc": video["desc"],
+            "tanggal_upload": video.get("tanggal", "N/A"),
+            "nickname": video.get("nickname", "N/A"),
+            "jumlah_comment": video.get("jumlah_comment", "N/A"),
+        })
+    
+    print(json.dumps(hasil, indent=4, ensure_ascii=False))
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+'''
+List fitur yang belum :
+- menyimpan di database
+- setelah beberapa percobaan masih bisa get 12 video
+- belum dapat multiple keyword
+'''
