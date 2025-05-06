@@ -1,10 +1,9 @@
 from fastapi import FastAPI
-from app import search
-from app.api import tiktok
+from app.api.routes import router as search_router
 
 app = FastAPI()
 
-app.include_router(tiktok.router, prefix="/api")
+app.include_router(search_router, prefix="/api")
 
 @app.get("/")
 def root():

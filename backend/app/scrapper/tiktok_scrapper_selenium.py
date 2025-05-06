@@ -1,26 +1,35 @@
 # import json
 import requests
-import asyncio
-import random
-import json
-from playwright.async_api import async_playwright
 from datetime import datetime
-from db.mongodb import search_collection  # Impor absolut (sesuaikan dengan struktur)
+from db.mongodb import search_collection
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
 
-async def get_new_cookies():
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
-        page = await browser.new_page()
-        await page.goto("https://www.tiktok.com/", timeout=60000)
+def get_new_cookies():
+    options = Options()
+    options.binary_location = "C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
+    options.add_argument("--headless")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
-        cookies = await page.context.cookies()
+    service = Service("C:/chromedriver-win64/chromedriver.exe")
+    driver = webdriver.Chrome(service=service, options=options)
+
+    try:
+        driver.get("https://www.tiktok.com/")
+        print("Navigasi ke TikTok berhasil.")
+
+        cookies = driver.get_cookies()
         cookie_str = "; ".join([f"{cookie['name']}={cookie['value']}" for cookie in cookies])
-
-        await browser.close()
+        print("Cookies berhasil diambil.")
         return cookie_str
+    finally:
+        driver.quit()
 
 async def search_videos_by_keyword(keyword, max_videos=20):
-    cookies = await get_new_cookies()
+    cookies = get_new_cookies()
 
     headers = {
         "accept": "*/*",
@@ -41,7 +50,7 @@ async def search_videos_by_keyword(keyword, max_videos=20):
             f"aid=1988&app_language=en&app_name=tiktok_web&browser_language=en-US&"
             f"browser_name=Mozilla&browser_online=true&browser_platform=Win32&"
             f"browser_version=5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%29%20"
-            f"AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F135.0.0.0%20"
+            f"AppleWebKit%2F537.36%20%28KHTML%2C%20Gecko%29%20Chrome%2F135.0.0.0%20"
             f"Safari%2F537.36&channel=tiktok_web&cookie_enabled=true&count=30&"
             f"cursor={cursor}&device_platform=web_pc&focus_state=true&from_page=search&"
             f"history_len=3&is_fullscreen=false&is_page_visible=true&keyword={keyword}&"
@@ -85,12 +94,6 @@ async def search_videos_by_keyword(keyword, max_videos=20):
 
                 print(f"Fetched {len(videos)} videos, next cursor: {cursor}")
 
-                await asyncio.sleep(random.uniform(0.5, 2))
-
-            else:
-                print(f"Error: Gagal mengambil data (Status: {response.status_code})")
-                has_more = False
-
         except Exception as e:
             print(f"Error saat mengambil data: {e}")
             has_more = False
@@ -103,10 +106,9 @@ async def save_to_mongo(data: dict):
     if not video_id:
         print("Data tidak memiliki video_id, tidak disimpan.")
         return
-
     try:
         await search_collection.update_one(
-            {"video_id": video_id},  # Konsistenkan dengan video_id
+            {"video_id": video_id},
             {
                 "$set": {
                     "platform": "tiktok",
@@ -120,13 +122,12 @@ async def save_to_mongo(data: dict):
                 }
             },
             upsert=True
-        )
-        print(f"Berhasil menyimpan data untuk video_id: {video_id}")
+            )
     except Exception as e:
         print(f"Error saat menyimpan ke MongoDB: {e}")
 
 # async def main():
-#     keyword = "poliwangi"
+#     keyword = "api"
 #     max_videos = 50
 #     video_ids = await search_videos_by_keyword(keyword, max_videos)
 #     print("\nHasil Video TikTok:")
