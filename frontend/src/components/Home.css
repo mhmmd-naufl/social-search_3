@@ -1,0 +1,100 @@
+/* body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #4285f4;
+  font-family: Arial, sans-serif;
+} */
+
+.main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: white;
+  text-align: center;
+  background-color: #00173b;
+}
+
+.title {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 30px;
+}
+
+.search-bar {
+  display: flex;
+  width: 100%;
+  max-width: 600px;
+}
+
+.search-bar input {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 16px;
+  border: none;
+  border-radius: 24px 0 0 24px;
+  outline: none;
+}
+
+.search-bar button {
+  padding: 12px 20px;
+  background-color: #001f51;
+  color: white;
+  border: none;
+  font-size: 16px;
+  border-radius: 0 24px 24px 0;
+  cursor: pointer;
+}
+
+.search-bar button:hover {
+  background-color: #000819;
+}
+
+.result-list {
+  width: 100%;
+  max-width: 700px;
+  margin-top: 40px;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  color: black;
+}
+
+.result-card {
+  border-bottom: 1px solid #eee;
+  padding: 16px 0;
+}
+
+.result-card a {
+  color: #1a0dab;
+  font-size: 20px;
+  text-decoration: none;
+}
+
+.result-card a:hover {
+  text-decoration: underline;
+}
+
+.result-card p {
+  margin: 8px 0;
+  color: #555;
+}
+
+/* Bisa ditaruh di file .css */
+.loader {
+  border: 6px solid #f3f3f3;
+  border-top: 6px solid white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+

@@ -1,49 +1,80 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from db.mongodb import search_collection
 from bson import ObjectId
-from app.scrapper.tiktok_scrapper_selenium import search_videos_by_keyword
-import asyncio
+from app.scrapper.tiktok_scrapper import search_videos_by_keyword
+import logging
 
 router = APIRouter()
 
-# Fungsi untuk mengonversi ObjectId menjadi string
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 def convert_objectid_to_str(data):
+    """Convert ObjectId to string for JSON serialization."""
     if isinstance(data, list):
         return [convert_objectid_to_str(item) for item in data]
     elif isinstance(data, dict):
         return {key: convert_objectid_to_str(value) for key, value in data.items()}
     elif isinstance(data, ObjectId):
         return str(data)
-    else:
-        return data
+    return data
 
 @router.get("/search")
-async def scrape_and_save(keyword: str = Query(...), max_videos: int = 20):
+async def scrape_and_save(keyword: str = Query(..., description="Keyword to search for"), max_videos: int = Query(20, description="Maximum number of videos to return")):
+    """
+    Search videos by keyword in MongoDB. If no results are found, scrape TikTok and save to MongoDB.
+    """
     try:
-        # Cari data di database berdasarkan keyword
+        # Cari di MongoDB berdasarkan keyword
+        logger.info(f"Querying MongoDB for keyword: {keyword}")
         results = await search_collection.find({"keyword": keyword}).to_list(length=max_videos)
-        print(f"Hasil query MongoDB berdasarkan keyword '{keyword}': {results}")  # Log hasil query
+        results = convert_objectid_to_str(results)
 
-        # Jika data tidak ditemukan, lakukan scraping
-        if not results:
-            print(f"Data untuk keyword '{keyword}' tidak ditemukan di database. Memulai scraping...")
-            video_ids = await search_videos_by_keyword(keyword, max_videos)
-            print(f"Video IDs yang dikembalikan: {video_ids}")
+        # Jika data ditemukan di MongoDB, kembalikan hasil
+        if results:
+            logger.info(f"Found {len(results)} results in MongoDB for keyword: {keyword}")
+            return {"status": "success", "data": results}
 
-            # Simpan hasil scraping ke database
-            for video in video_ids:
+        # Jika tidak ada hasil, lakukan scraping
+        logger.info(f"No data found in MongoDB for keyword: {keyword}. Starting scraping...")
+        video_ids = await search_videos_by_keyword(keyword, max_videos)
+
+        # Validasi hasil scraping
+        if video_ids is None or not isinstance(video_ids, list):
+            logger.warning(f"Scraping returned invalid or no results for keyword: {keyword}")
+            return {"status": "success", "data": [], "message": "No videos found after scraping"}
+
+        # Validasi setiap video memiliki video_id
+        valid_videos = []
+        for video in video_ids:
+            if not isinstance(video, dict) or "video_id" not in video:
+                logger.warning(f"Invalid video data, missing video_id: {video}")
+                continue
+            valid_videos.append(video)
+
+        # Jika tidak ada video valid, kembalikan respons kosong
+        if not valid_videos:
+            logger.warning(f"No valid videos found after validation for keyword: {keyword}")
+            return {"status": "success", "data": [], "message": "No valid videos found after scraping"}
+
+        # Simpan hasil scraping ke MongoDB
+        for video in valid_videos:
+            try:
                 await search_collection.update_one(
                     {"video_id": video["video_id"]},
                     {"$set": video},
                     upsert=True
                 )
-            results = video_ids
+            except Exception as e:
+                logger.error(f"Failed to save video {video['video_id']} to MongoDB: {str(e)}")
+                continue
 
-        # Konversi hasil query menjadi format JSON-friendly
-        result = [convert_objectid_to_str(result) for result in results]
-        results = await search_collection.find({"keyword": keyword}).to_list(length=max_videos)
-        return {"status": "success", "data": result}
-    
+        # Konversi ObjectId ke string
+        results = convert_objectid_to_str(valid_videos)
+        logger.info(f"Scraped and saved {len(results)} videos for keyword: {keyword}")
+        return {"status": "success", "data": results}
+
     except Exception as e:
-        print(f"Error querying MongoDB atau scraping: {e}")
-        return {"status": "error", "message": str(e)}
+        logger.error(f"Error querying MongoDB or scraping: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error querying MongoDB or scraping: {str(e)}")

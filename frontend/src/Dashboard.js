@@ -1,13 +1,15 @@
-import React from "react";
-import Sidebar from "./Sidebar"; // Import Sidebar
+import React, {useState } from "react";
+import Sidebar from "./Sidebar";
 import "./Dashboard.css";
 
 const Dashboard = () => {
+  const [data, setData] = useState(null);
+
   return (
     <Sidebar>
       <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h1>Dashboard Admin</h1>
+        <div className="dashboard-header">
+          <h1>Dashboard Admin</h1>
           <h2>Selamat Datang, Admin!</h2>
           <p>Ini adalah halaman dashboard utama Anda.</p>
         </div>
@@ -21,6 +23,11 @@ const Dashboard = () => {
           <div className="card">
             <h4>Aktivitas Terbaru</h4>
             <p>Admin telah memverifikasi 3 laporan berita hoaks.</p>
+          </div>
+
+          <div className="card">
+            <h4>Data dari API</h4>
+            <p>{data ? data.message : "Memuat data..."}</p>
           </div>
         </div>
       </div>

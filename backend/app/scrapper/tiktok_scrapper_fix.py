@@ -1,4 +1,6 @@
+# import json
 import requests
+import asyncio
 from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -62,11 +64,7 @@ async def search_videos_by_keyword(keyword, max_videos=20):
             response = requests.get(id_url, headers=headers, timeout=10)
 
             if response.status_code == 200:
-                try:
-                    data_id = response.json()
-                except ValueError:
-                    print(f"Respons tidak valid untuk keyword '{keyword}': {response.text}")
-                    break
+                data_id = response.json()
 
                 videos = data_id.get("data", [])
                 for item in videos:
@@ -81,6 +79,8 @@ async def search_videos_by_keyword(keyword, max_videos=20):
 
                         if video_id:
                             video_url = f"https://www.tiktok.com/@{nickname}/video/{video_id}"
+                            # comments = await fetch_comments_for_videos([video_id], headers)
+                            # video_comments = comments.get(video_id, [])
                             data_video = {
                                 "video_id": video_id,
                                 "url": video_url,
@@ -89,88 +89,85 @@ async def search_videos_by_keyword(keyword, max_videos=20):
                                 "nickname": nickname,
                                 "jumlah_comment": jumlah_comment,
                                 "keyword": keyword,
+                                # "comments" : video_comments
                             }
                             video_ids.append(data_video)
                             await save_to_mongo(data_video)
 
-                            if len(video_ids) >= max_videos:
-                                print(f"Jumlah video mencapai batas maksimum: {max_videos}")
-                                break
-
                 has_more = data_id.get("has_more", False)
                 cursor = data_id.get("cursor", cursor + 30)
 
-                print(f"Fetched {len(videos)} videos, total so far: {len(video_ids)}, next cursor: {cursor}")
-            else:
-                print(f"Failed to fetch videos, status code: {response.status_code}")
-                has_more = False
-
+                print(f"Fetched {len(videos)} videos, next cursor: {cursor}")
+                return video_ids
+            
         except Exception as e:
             print(f"Error saat mengambil data: {e}")
             has_more = False
+            
+        # pass
 
-# Ambil komentar untuk 4 video ID pertama
-    if video_ids and len(video_ids) >= 4:
-        first_four_video_ids = video_ids[:4]
-        for video in first_four_video_ids:
-            video_id = video["video_id"]
-            print(f"Mengambil komentar untuk video_id: {video_id}")
-            all_comments = await fetch_comments_for_videos(video_id, headers)
+    # all_comments = await fetch_comments_for_videos([video["video_id"] for video in video_ids], headers)
 
-            video["comments"] = all_comments
+    # for video in video_ids:
+    #     video["comments"] = all_comments.get(video["video_id"], [])
 
-            await save_to_mongo(video)
-    else:
-        print("Tidak ada cukup video_id yang ditemukan.")
+# async def fetch_comments_for_videos(video_ids, headers):
+#     all_video_comments = {}
 
-async def fetch_comments_for_videos(video_id, headers):
-    """
-    Mengambil komentar hanya untuk satu video dengan satu halaman komentar (cursor pertama).
-    """
-    print(f"Mengambil komentar untuk video_id: {video_id}")
-    video_comments = []
+#     for video_id in video_ids:
+#         print(f"Mengambil komentar untuk video_id: {video_id}")
+#         cursor = 0
+#         has_more = True
+#         video_comments = []
 
-    try:
-        comments_url = (
-            f"https://www.tiktok.com/api/comment/list/?"
-            f"WebIdLastTime=1745468006&aid=1988&app_language=en&app_name=tiktok_web&aweme_id={video_id}&"
-            f"browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Win32&"
-            f"browser_version=5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%29%20"
-            f"AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F135.0.0.0%20"
-            f"Safari%2F537.36&channel=tiktok_web&cookie_enabled=true&count=20&"
-            f"cursor=0&data_collection_enabled=true&device_id=7496727975040796178&device_platform=web_pc&"
-            f"focus_state=true&from_page=video&history_len=3&is_fullscreen=false&is_page_visible=true&"
-            f"odinId=7496727857532666898&os=windows&priority_region=&referer=&region=ID&screen_height=1050&screen_width=1680&"
-            f"tz_name=Asia%2FJakarta&user_is_login=false&verifyFp=verify_m9uul3hy_MUW0yaqI_d9uZ_4Plw_8QPG_fZD1av698o11&"
-            f"webcast_language=en&msToken=oLandq46SdFmJhodB5UJy5hbm1vzXXQs8AHIBPhat_--QmQ5eD-S3M20euY5jPP8TG4o3NT3XR_hUvoATGpcP-"
-            f"XMqoOHqbkTSjntMyLnOUglrlgtp7bNrnfDkevTueEi4EMGusJl2tUqt69-iTbTSg==&X-Bogus=DFSzswVYyAhANSo9Cayq9y3SsZDI&X-"
-            f"Gnarly=M/p/wtWYD29qKpbn0td6VM7-Dj8mtlNcKF47EP3jHOnaDMCJPRuYuWt0RbRNWAUNlc19-"
-            f"Y/noOaTTPcDQ9ECcM/mBI2juOCBvkw9WpYNYbdsynPxGNqzBTSKPyF0mE0JrQ8EbvbPgYbSucMGHVHFUD8uhkIrsYQ6tO86Czb/sriMsF0ZswQt7a8/"
-            f"UMquGhV-FwKToBfVO-4JQYcl7H6sYrhUFmMLfm-TwHkymJFBbP-/x2yN/0Fn-SKz18/D/rU5NjVN0fVyaXq-"
-        )
+#         while has_more:
+#             try:
+#                 comments_url = (
+#                     f"https://www.tiktok.com/api/comment/list/?"
+#                     f"WebIdLastTime=1745468006&aid=1988&app_language=en&app_name=tiktok_web&aweme_id={video_id}&"
+#                     f"browser_language=en-US&browser_name=Mozilla&browser_online=true&browser_platform=Win32&"
+#                     f"browser_version=5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%29%20"
+#                     f"AppleWebKit%2F537.36%20%28KHTML%2C%20like%20Gecko%29%20Chrome%2F135.0.0.0%20"
+#                     f"Safari%2F537.36&channel=tiktok_web&cookie_enabled=true&count=20&"
+#                     f"cursor=0&data_collection_enabled=true&device_id=7496727975040796178&device_platform=web_pc&"
+#                     f"focus_state=true&from_page=video&history_len=3&is_fullscreen=false&is_page_visible=true&"
+#                     f"odinId=7496727857532666898&os=windows&priority_region=&referer=&region=ID&screen_height=1050&screen_width=1680&"
+#                     f"tz_name=Asia%2FJakarta&user_is_login=false&verifyFp=verify_m9uul3hy_MUW0yaqI_d9uZ_4Plw_8QPG_fZD1av698o11&"
+#                     f"webcast_language=en&msToken=oLandq46SdFmJhodB5UJy5hbm1vzXXQs8AHIBPhat_--QmQ5eD-S3M20euY5jPP8TG4o3NT3XR_hUvoATGpcP-"
+#                     f"XMqoOHqbkTSjntMyLnOUglrlgtp7bNrnfDkevTueEi4EMGusJl2tUqt69-iTbTSg==&X-Bogus=DFSzswVYyAhANSo9Cayq9y3SsZDI&X-"
+#                     f"Gnarly=M/p/wtWYD29qKpbn0td6VM7-Dj8mtlNcKF47EP3jHOnaDMCJPRuYuWt0RbRNWAUNlc19-"
+#                     f"Y/noOaTTPcDQ9ECcM/mBI2juOCBvkw9WpYNYbdsynPxGNqzBTSKPyF0mE0JrQ8EbvbPgYbSucMGHVHFUD8uhkIrsYQ6tO86Czb/sriMsF0ZswQt7a8/"
+#                     f"UMquGhV-FwKToBfVO-4JQYcl7H6sYrhUFmMLfm-TwHkymJFBbP-/x2yN/0Fn-SKz18/D/rU5NjVN0fVyaXq-"
+#                 )
 
-        response = requests.get(comments_url, headers=headers, timeout=15)
+#                 response = requests.get(comments_url, headers=headers, timeout=10)
 
-        if response.status_code == 200:
-            try:
-                data_comments = response.json()
+#                 if response.status_code == 200:
+#                     data_comments = response.json()
 
-                comments = [
-                    {"text": c.get("text")}
-                    for c in data_comments.get("comments", [])
-                ]
-                video_comments.extend(comments)
+#                     comments = [
+#                         {"text": c.get("text")}
+#                         for c in data_comments.get("comments", [])
+#                     ]
+#                     video_comments.extend(comments)
 
-                print(f"Fetched {len(comments)} comments for video_id {video_id}")
-            except ValueError:
-                print(f"Respons tidak valid untuk video_id {video_id}: {response.text}")
-        else:
-            print(f"Failed to fetch comments for video_id {video_id}, status code: {response.status_code}")
+#                     has_more = data_comments.get("has_more", False)
+#                     cursor = data_comments.get("cursor", 0)
 
-    except Exception as e:
-        print(f"Error saat mengambil komentar untuk video_id {video_id}: {e}")
+#                     print(f"Fetched {len(comments)} comments for video_id {video_id}, next cursor: {cursor}")
+#                     await asyncio.sleep(0.5)
+#                 else:
+#                     print(f"Failed to fetch comments for video_id {video_id}, status code: {response.status_code}")
+#                     has_more = False
 
-    return video_comments
+#             except Exception as e:
+#                 print(f"Error saat mengambil komentar untuk video_id {video_id}: {e}")
+#                 has_more = False
+
+#         all_video_comments[video_id] = video_comments
+#         print(f"Fetched comments for video_id {video_id}: {video_comments}")
+
+#     return all_video_comments
 
 async def save_to_mongo(data: dict):
     video_id = data.get("video_id")
@@ -178,7 +175,7 @@ async def save_to_mongo(data: dict):
         print("Data tidak memiliki video_id, tidak disimpan.")
         return
     try:
-        print(f"Komentar yang akan disimpan: {data.get('comments', [])}") 
+        # print(f"Komentar yang akan disimpan: {data.get('comments', [])}") 
         await search_collection.update_one(
             {"video_id": video_id},
             {
@@ -198,6 +195,25 @@ async def save_to_mongo(data: dict):
             )
     except Exception as e:
         print(f"Error saat menyimpan ke MongoDB: {e}")
+
+# async def main():
+#     keyword = input("Masukkan keyword untuk pencarian TikTok: ").strip()
+#     max_videos = 50
+#     video_ids = await search_videos_by_keyword(keyword, max_videos)
+#     print("\nHasil Video TikTok:")
+#     hasil = []
+#     for video in video_ids:
+#         hasil.append({
+#             "video_id": video["video_id"],
+#             "desc": video["desc"],
+#             "tanggal_upload": video.get("tanggal", "N/A"),
+#             "nickname": video.get("nickname", "N/A"),
+#             "jumlah_comment": video.get("jumlah_comment", "N/A"),
+#         })
+
+# if __name__ == "__main__":
+#     asyncio.run(main())
+
 '''
 List fitur yang belum :
 - setelah beberapa percobaan masih bisa get 12 video
