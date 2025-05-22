@@ -1,0 +1,173 @@
+/* pencarian-konten.css */
+
+.pencarian-konten-page {
+    padding: 50px;
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    min-height: 100vh;
+  }
+  
+.pencarian-konten-page h2 {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+  }
+  .card-icon-bwi {
+    margin-bottom: 20px;
+  }
+  .search-box input,
+  .search-box select {
+    padding: 10px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    outline: none;
+  }
+  
+  .search-box button {
+    padding: 10px 14px;
+    font-size: 14px;
+    background-color: #0B365F;
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  mark {
+    background-color: yellow;
+    padding: 0 2px;
+  }
+  
+  .search-box button:hover {
+    background-color: #2654a9;
+  }
+  
+  .results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+  }
+  
+  .result-card {
+    background-color: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+  }
+  
+  .result-card:hover {
+    transform: translateY(-3px);
+  }
+  
+  .post-thumbnail {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .description {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  
+  .comments {
+    margin-top: 10px;
+  }
+  
+  .comments h4 {
+    margin-bottom: 6px;
+    font-size: 16px;
+  }
+  
+  .comments ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  .comments li {
+    margin-bottom: 5px;
+    font-size: 13px;
+    color: #555;
+  }
+  
+  .comments .positif {
+    color: #28a745;
+    font-weight: bold;
+  }
+  
+  .comments .negatif {
+    color: #dc3545;
+    font-weight: bold;
+  }
+  
+  .comments .netral {
+    color: #6c757d;
+    font-weight: bold;
+  }
+  
+  .chart {
+    margin-top: 12px;
+  }
+  
+  .chart h4 {
+    margin-bottom: 6px;
+    font-size: 16px;
+  }
+  
+  /* Pie chart sederhana */
+  .pie-chart {
+    width: 100%;
+    height: 18px;
+    background: linear-gradient(
+      to right,
+      #28a745 calc(var(--value-positif, 0) * 1%),
+      #6c757d calc(var(--value-positif, 0) * 1%),
+      #6c757d calc((var(--value-positif, 0) + var(--value-netral, 0)) * 1%),
+      #dc3545 calc((var(--value-positif, 0) + var(--value-netral, 0)) * 1%),
+      #dc3545 100%
+    );
+    border-radius: 8px; 
+ }
+ .search-controls {
+  display: flex;
+  gap: 10px;
+  background: #fff;
+  padding: 16px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  margin-bottom: 30px;
+}
+
+.search-controls input,
+.search-controls select {
+  padding: 10px 12px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  flex: 1;
+}
+
+.search-controls button {
+  background-color: #0c3c66;
+  color: white;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.search-title {
+  margin-bottom: 20px;
+}
