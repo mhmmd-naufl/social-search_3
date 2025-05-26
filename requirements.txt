@@ -1,0 +1,8 @@
+fastapi[all]
+uvicorn
+motor
+requests
+selenium
+pymongo[srv]
+python-dotenv
+webdriver-manager
