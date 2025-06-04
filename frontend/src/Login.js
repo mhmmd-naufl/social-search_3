@@ -1,86 +1,133 @@
-import React, { useState } from "react";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Login.css";
-import bgImage from "./assets/bg.png";
+import { FaCalendarAlt, FaClock, FaTemperatureHigh, FaBars } from "react-icons/fa";
+import "./Home.css";
 
-const Login = ({ onLogin }) => {
-  const [showPassword, setShowPassword] = useState(false);
-  const [adminId, setAdminId] = useState("");
-  const [password, setPassword] = useState("");
+function Home() {
+  const [keyword, setKeyword] = useState("");
+  const [history, setHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+  const [temp, setTemp] = useState("...");
+
   const navigate = useNavigate();
 
-  const togglePasswordVisibility = () => {
-    setShowPassword((prev) => !prev);
-  };
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      const options = {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      };
+      setDate(now.toLocaleDateString("id-ID", options));
+      setTime(now.toLocaleTimeString("id-ID"));
+    };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (adminId === "admin" && password === "1") {
-      onLogin(); // panggil dari App.js
-      navigate("/dashboard"); // pindah ke dashboard
-    } else {
-      alert("ID atau password salah");
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const city = "Banyuwangi";
+        const apiKey = "39699f61db3b4088483dff28ef6f48ab";
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`
+        );
+        const data = await response.json();
+        const temperature = data.main.temp;
+        setTemp(`${temperature.toFixed(1)}°C`);
+      } catch (error) {
+        console.error("Gagal mengambil suhu:", error);
+        setTemp("Gagal");
+      }
+    };
+
+    fetchWeather();
+  }, []);
+
+  useEffect(() => {
+    const stored = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+    setHistory(stored);
+  }, []);
+
+  const handleSearch = () => {
+    if (keyword.trim()) {
+      const updatedHistory = [keyword, ...history.filter((k) => k !== keyword)].slice(0, 5);
+      localStorage.setItem("searchHistory", JSON.stringify(updatedHistory));
+      setHistory(updatedHistory);
+      navigate(`/hasil?keyword=${encodeURIComponent(keyword)}`);
     }
   };
 
-  return (
-    <div
-      className="login-container"
-      style={{
-        backgroundImage: `linear-gradient(to bottom right, rgba(0, 0, 0, 0.7), rgba(0, 0, 255, 0.4), rgba(255, 255, 255, 0.1)), url(${bgImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        minHeight: "100vh",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-      <div className="login-box">
-        <h2>Login Admin</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label htmlFor="adminId">Id Admin</label>
-            <input
-              type="text"
-              id="adminId"
-              placeholder="Masukkan Id Admin"
-              value={adminId}
-              onChange={(e) => setAdminId(e.target.value)}
-              required
-            />
-          </div>
-          <div className="input-group">
-            <div className="password-label">
-              <label htmlFor="password">Password</label>
-              <span
-                className="toggle-password"
-                onClick={togglePasswordVisibility}
-              >
-                {showPassword ? <FiEyeOff /> : <FiEye />}
-              </span>
-            </div>
-            <div className="password-wrapper">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                placeholder="Masukkan Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <button type="submit" className="login-btn">
-            Log in
-          </button>
-        </form>
-        <p className="forgot-password">Forget your password</p>
-      </div>
-    </div>
-  );
-};
+  const handleHistoryClick = (item) => {
+    setKeyword(item);
+    setShowHistory(false);
+  };
 
-export default Login;
+  const toggleHistory = () => {
+    setShowHistory((prev) => !prev);
+  };
+
+  return (
+    <>
+      <div className="main">
+        <div className="top-bar">
+          <div className="title">Social Search🔍</div>
+
+          {/* Wrap FaBars dan Dropdown dalam container */}
+          <div className="history-container">
+            <FaBars className="history-icon" onClick={toggleHistory} />
+            {showHistory && (
+              <div className="history-dropdown">
+                {history.length === 0 ? (
+                  <div className="history-item empty">Belum ada history</div>
+                ) : (
+                  
+                  history.map((item, idx) => (
+                    <div key={idx} className="history-item" onClick={() => handleHistoryClick(item)}>
+                      {item}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="search-bar">
+          <div className="search-container"></div>
+          <input
+            type="text"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="Cari konten TikTok"
+            className="search-input"
+          />
+          <button onClick={handleSearch} className="search-button">
+            Cari
+          </button>
+        </div>
+      </div>
+
+      <div className="info-bar">
+        <div className="info-item">
+          <FaCalendarAlt className="icon" /> {date}
+        </div>
+        <div className="info-item">
+          <FaClock className="icon" /> {time}
+        </div>
+        <div className="info-item">
+          <FaTemperatureHigh className="icon" /> {temp}
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default Home;
