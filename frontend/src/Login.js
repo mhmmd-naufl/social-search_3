@@ -88,7 +88,7 @@ function Home() {
                 {history.length === 0 ? (
                   <div className="history-item empty">Belum ada history</div>
                 ) : (
-                  
+
                   history.map((item, idx) => (
                     <div key={idx} className="history-item" onClick={() => handleHistoryClick(item)}>
                       {item}
@@ -102,13 +102,18 @@ function Home() {
 
         <div className="search-bar">
           <div className="search-container"></div>
-          <input
-            type="text"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            placeholder="Cari konten TikTok"
-            className="search-input"
-          />
+<input
+  type="text"
+  value={keyword}
+  onChange={(e) => setKeyword(e.target.value)}
+  onKeyDown={(e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }}
+  placeholder="Cari konten TikTok"
+  className="search-input"
+/>
           <button onClick={handleSearch} className="search-button">
             Cari
           </button>
